@@ -136,31 +136,5 @@ namespace NESCS.CPU
                 Cpu.SetStatusFlag(StatusFlags.ZeroFlag);
             }
         }
-
-        /*
-        /// <summary>
-        /// Will load immedaite value into the A register.
-        /// </summary>
-        /// <returns>New value stored in the A register.</returns>
-        private byte LdaImmediate()
-        {
-            A = Memory.ReadSecondByte(Instruction);
-            UpdateStatusFlags("A");
-            Cycles += 2;
-            return A;
-        }
-
-        /// <summary>
-        /// Will load a value into the A register from zero page memory range (0x00 to 0x00ff)
-        /// </summary>
-        /// <returns>New value stored in the A register.</returns>
-        private byte LdaZeroPage()
-        {
-            A = Memory.ReadValueFromMemory(Memory.ReadSecondByte(Instruction));
-            UpdateStatusFlags("A");
-            Cycles += 3;
-            return 0;
-        }
-        */
     }
 }
