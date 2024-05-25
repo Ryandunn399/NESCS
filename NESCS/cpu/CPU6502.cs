@@ -107,6 +107,45 @@ namespace NESCS.CPU
                     A.LoadIndirectIndexed();
                     break;
 
+                case byte value when value == OpCodes.LdxImmediate:
+                    X.LoadImmediate();
+                    break;
+
+                case byte value when value == OpCodes.LdxZeroPage:
+                    X.LoadZeroPage();
+                    break;
+
+                case byte value when value == OpCodes.LdxZeroPageY:
+                    X.LoadZeroPageXY(Y.Value);
+                    break;
+
+                case byte value when value == OpCodes.LdxAbsolute:
+                    X.LoadAbsolute();
+                    break;
+
+                case byte value when value == OpCodes.LdxAbsoluteY:
+                    X.LoadAbsoluteXY(Y.Value);
+                    break;
+
+                case byte value when value == OpCodes.LdyImmediate:
+                    Y.LoadImmediate();
+                    break;
+
+                case byte value when value == OpCodes.LdyZeroPage:
+                    Y.LoadZeroPage();
+                    break;
+
+                case byte value when value == OpCodes.LdyZeroPageX:
+                    Y.LoadZeroPageXY(X.Value);
+                    break;
+
+                case byte value when value == OpCodes.LdyAbsolute:
+                    Y.LoadAbsolute();
+                    break;
+
+                case byte value when value == OpCodes.LdyAbsoluteX:
+                    Y.LoadAbsoluteXY(X.Value);
+                    break;
             }
         }
 
@@ -160,23 +199,6 @@ namespace NESCS.CPU
             return returnValue;
         }
     }
-
-    /// <summary>
-    /// Stores the NES 6502 operation codes.
-    /// </summary>
-    public static class OpCodes
-    {
-        // Instruction constants
-        public static byte LdaImmediate => 0xA9;
-        public static byte LdaZeroPage => 0xA5;
-        public static byte LdaZeroPageX => 0xB5;
-        public static byte LdaAbsolute => 0xAD;
-        public static byte LdaAbsoluteX => 0xBD;
-        public static byte LdaAbsoluteY => 0xB9;
-        public static byte LdaIndexedIndirect => 0xA1;
-        public static byte LdaIndirectIndexed => 0xB1;
-    }
-
 
     /// <summary>
     /// Stores the status flag constants.
