@@ -29,20 +29,13 @@ namespace NESCS
             Memory memory = app.NES.Memory;
             CPU6502 cpu = app.NES.Cpu;
 
-            memory.WriteInstructionIntoMemory(0xA9CD);
-            memory.WriteInstructionIntoMemory(0xA500);
-            memory.WriteByteIntoMemory(0, 0x73);
+            memory.WriteByteIntoMemory(0x12);
+            memory.WriteByteIntoMemory(0x12);
+            memory.WriteByteIntoMemory(0x12);
+            memory.WriteByteIntoMemory(0x12);
 
-            cpu.Fetch();
-            cpu.Execute();
-
-            cpu.Fetch();
-            cpu.Execute();
-
-            //Console.WriteLine($"{cpu.A.Value.ToString("X")}");
-            int v = 0xffff;
-            v = v % 0x10000;
-            Console.WriteLine($"{v.ToString("x")}");
+            uint value = cpu.ReadInBytes(1);
+            Console.WriteLine($"{value.ToString("X")}");
         }
     }
 }

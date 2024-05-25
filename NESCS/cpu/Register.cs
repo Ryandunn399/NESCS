@@ -40,43 +40,12 @@ namespace NESCS.CPU
         }
 
         /// <summary>
-        /// Will determine the necessary load instruction based on the given address mode.
-        /// </summary>
-        /// <param name="mode">the address mode to use loading a value into this register.</param>
-        /// <param name="instr">the 16 bit instruction being executed.</param>
-        /// <param name="suppl">supplemental register value required for some load instructions.</param>
-        /// <returns>the value now stored in the register.</returns>
-        public byte LoadInstruction(AddressMode mode, byte supplValue)
-        {
-            ushort instr = Cpu.Instruction;
-
-            switch(mode)
-            {
-                case AddressMode.Immediate:
-                    LoadImmediate(instr);
-                    break;
-
-                case AddressMode.ZeroPage:
-                    LoadZeroPage(instr);
-                    break;
-
-                case AddressMode.ZeroPageXY:
-                    LoadZeroPageXY(instr, supplValue);
-                    break;
-
-
-            }
-
-            return Value;
-        }
-
-        /// <summary>
         /// Will load the immediate value stored in the second byte of the instruction.
         /// </summary>
         /// <param name="instr">The instruction being called.</param>
-        private void LoadImmediate(ushort instr)
+        public void LoadImmediate()
         {
-            Value = Utilities.ReadSecondByte(instr);
+            Value = (byte)Cpu.ReadInBytes(1); // Next immediate value
             UpdateStatusFlags();
             Cpu.Cycles += 2;
         }
@@ -85,9 +54,9 @@ namespace NESCS.CPU
         /// Will execute the load instruction using the zero page addressing mode.
         /// </summary>
         /// <param name="instr"></param>
-        private void LoadZeroPage(ushort instr)
+        public void LoadZeroPage()
         {
-            byte addr = Utilities.ReadSecondByte(instr);
+            byte addr = (byte)Cpu.ReadInBytes(1); // The one byte address passed?
             Value = Memory.ReadValueFromMemory(addr);
             UpdateStatusFlags();
             Cpu.Cycles += 3;
@@ -98,25 +67,9 @@ namespace NESCS.CPU
         /// </summary>
         /// <param name="instr">the instruction currently being executed.</param>
         /// <param name="supplValue">the value of the x/y register</param>
-        private void LoadZeroPageXY(ushort instr, byte supplValue)
+        public void LoadZeroPageXY(byte supplValue)
         {
-            byte instrValue = Utilities.ReadSecondByte(instr);
-            ushort addr;
-
-            // Handle wrapping logic if the values of sum of these two registers exceeds its range.
-            if (supplValue > instrValue && supplValue + instrValue > 0xFF)
-            { 
-                addr = (ushort)(supplValue - instrValue);
-            }
-            else if (instrValue > supplValue && supplValue + instrValue > 0xFF)
-            {
-                addr = (ushort)(instrValue - supplValue);
-            }
-            else
-            {
-                addr = (ushort)(supplValue + instrValue);
-            }
-
+            byte addr = (byte)((Cpu.ReadInBytes(1) + (uint)Cpu.X.Value) % 0x100);
             Value = Memory.ReadValueFromMemory(addr);
             UpdateStatusFlags();
             Cpu.Cycles += 4;
@@ -125,23 +78,74 @@ namespace NESCS.CPU
         /// <summary>
         /// Will load the instruction at the memory location
         /// </summary>
-        private void LoadAbsolute(ushort instr)
+        public void LoadAbsolute()
         {
-            int memoryIndex = Utilities.ReadSecondByte(instr);
+            uint addr = Cpu.ReadInBytes(2);
 
             // Wrap the memory index if it exceeds 0xFFFF
-            memoryIndex %= 0x10000;
-            Value = Memory.ReadValueFromMemory((ushort)memoryIndex);
+            addr %= 0x10000;
+            Value = Memory.ReadValueFromMemory((ushort)addr);
+            UpdateStatusFlags();
+            Cpu.Cycles += 4;
         }
 
         /// <summary>
-        /// Will load the instruction
+        /// Will load the instruction taking a register value and adding it to the address 
         /// </summary>
-        /// <param name="instr"></param>
-        /// <param name="supplValue"></param>
-        private void LoadAbsoluteXY(ushort instr, byte supplValue)
+        /// <param name="supplValue">The X/Y regsiter value</param>
+        public void LoadAbsoluteXY(byte supplValue)
         {
+            uint addr = Cpu.ReadInBytes(2);
 
+            addr = (addr + supplValue) % 0x10000;
+            Value = Memory.ReadValueFromMemory((ushort)addr);
+            UpdateStatusFlags();
+            Cpu.Cycles += 4;
+
+            // Determine if pages crossed and update cycle count
+            if (Utilities.PagesCrossed(addr, supplValue))
+            {
+                Cpu.Cycles += 1;
+            }
+        }
+
+        /// <summary>
+        /// Adds a memory address stored in the zero page pointed by the next byte in memory
+        /// and adds it to another value stored in the zero page address pointed to by the X register.
+        /// </summary>
+        public void LoadIndexedIndirect()
+        {
+            // The second byte of the instruction contains the address FOR the value
+            byte addr = Memory.ReadValueFromMemory((byte)Cpu.ReadInBytes(1));
+
+            // Next the value at the memory address pointed to by the X register.
+            byte supplAddr = Memory.ReadValueFromMemory(Cpu.X.Value);
+
+            // Zero page wrap around
+            addr = Utilities.ZeroPageWrapAround(addr, supplAddr);
+            Value = Memory.ReadValueFromMemory(addr);
+            Cpu.Cycles += 6;
+        }
+
+        /// <summary>
+        /// Will load the immediate value of the Y address to the memory address stored
+        /// at the location of the next memory value in memory.
+        /// </summary>
+        /// <param name="supplValue">The value of the register</param>
+        public void LoadIndirectIndexed()
+        {
+            // The second byte of the instruction contains the address FOR the value
+            ushort addr = Memory.ReadValueFromMemory((byte)Cpu.ReadInBytes(1));
+            addr = (ushort)((addr + Cpu.Y.Value) & 0xFFFF);
+
+            Value = Memory.ReadValueFromMemory(addr);
+
+            Cpu.Cycles += 5;
+
+            if (Utilities.PagesCrossed(addr, Cpu.Y.Value))
+            {
+                Cpu.Cycles += 1;
+            }
         }
 
         /// <summary>

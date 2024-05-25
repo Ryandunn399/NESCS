@@ -17,7 +17,7 @@ namespace NESCS.CPU
         private ushort PC;
 
         // Current instruction to be ran in next execute call
-        public ushort Instruction { get; private set; }
+        public byte Instruction { get; private set; }
 
         // Accumulator register
         public Register A { get; set; }
@@ -59,7 +59,8 @@ namespace NESCS.CPU
         /// <returns>the instruction loaded into memory.</returns>
         public int Fetch()
         {
-            LoadInstructionFromAddr(PC);
+            Memory.ReadValueFromMemory(PC);
+            PC += 1;
             Cycles = 0;
             return Instruction;
         }
@@ -69,38 +70,43 @@ namespace NESCS.CPU
         /// </summary>
         public void Execute()
         {
-            byte instr = Utilities.ReadFirstByte(Instruction);
-
             // Reset the status flag to be reset by this instruction.
             RefreshStatusFlag();
 
-            switch (instr)
+            switch (Instruction)
             {
                 case byte value when value == OpCodes.LdaImmediate:
-                    A.LoadInstruction(AddressMode.Immediate, 0);
+                    A.LoadImmediate();
                     break;
 
                 case byte value when value == OpCodes.LdaZeroPage:
-                    A.LoadInstruction(AddressMode.ZeroPage, 0);
+                    A.LoadZeroPage();
                     break;
 
                 case byte value when value == OpCodes.LdaZeroPageX:
-                    A.LoadInstruction(AddressMode.ZeroPageXY, X.Value);
+                    A.LoadZeroPageXY(X.Value);
                     break;
 
                 case byte value when value == OpCodes.LdaAbsolute:
-                    A.LoadInstruction(AddressMode.Absolute, 0);
+                    A.LoadAbsolute();
                     break;
 
                 case byte value when value == OpCodes.LdaAbsoluteX:
-                    LoadInstructionFromAddr((ushort)(PC - 1));
-                    A.LoadInstruction(AddressMode.AbsoluteX, X.Value);
+                    A.LoadAbsoluteXY(X.Value);
                     break;
 
                 case byte value when value == OpCodes.LdaAbsoluteY:
-                    LoadInstructionFromAddr((ushort)(PC - 1));
-                    A.LoadInstruction(AddressMode.AbsoluteY, Y.Value);
+                    A.LoadAbsoluteXY(Y.Value);
                     break;
+
+                case byte value when value == OpCodes.LdaIndexedIndirect:
+                    A.LoadIndexedIndirect();
+                    break;
+
+                case byte when ValueTask == OpCodes.LdaIndirectIndexed:
+                    A.LoadIndirectIndexed();
+                    break;
+
             }
         }
 
@@ -138,15 +144,20 @@ namespace NESCS.CPU
         }
 
         /// <summary>
-        /// Will load the instruction from the value of the passed argument
+        /// Will retrieve up to four bytes from memory and return it in one type.
         /// </summary>
-        private void LoadInstructionFromAddr(ushort val)
+        /// <returns>4 byte value</returns>
+        public uint ReadInBytes(uint value)
         {
-            Instruction = Memory.ReadValueFromMemory(val);
-            Instruction <<= 8;
-            PC += 1;
-            Instruction = (ushort)(Instruction | Memory.ReadValueFromMemory(val));
-            PC += 1;
+            uint returnValue = 0;
+            for (uint i = 0; i < value; i++)
+            {
+                returnValue <<= 8;
+                returnValue = (returnValue | (uint)(Memory.ReadValueFromMemory(PC) & 0xFF));
+                PC += 1;
+            }
+
+            return returnValue;
         }
     }
 
@@ -156,12 +167,14 @@ namespace NESCS.CPU
     public static class OpCodes
     {
         // Instruction constants
-        public static ushort LdaImmediate => 0xA9;
-        public static ushort LdaZeroPage => 0xA5;
-        public static ushort LdaZeroPageX => 0xB5;
-        public static ushort LdaAbsolute => 0xAD;
-        public static ushort LdaAbsoluteX => 0xBD;
-        public static ushort LdaAbsoluteY => 0xB9;
+        public static byte LdaImmediate => 0xA9;
+        public static byte LdaZeroPage => 0xA5;
+        public static byte LdaZeroPageX => 0xB5;
+        public static byte LdaAbsolute => 0xAD;
+        public static byte LdaAbsoluteX => 0xBD;
+        public static byte LdaAbsoluteY => 0xB9;
+        public static byte LdaIndexedIndirect => 0xA1;
+        public static byte LdaIndirectIndexed => 0xB1;
     }
 
 

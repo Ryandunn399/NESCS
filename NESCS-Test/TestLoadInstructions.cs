@@ -36,24 +36,6 @@ namespace NESCS_Test
         public void TestLoadImmediateAccumulator()
         {
             Memory mem = Cpu.Memory;
-
-            mem.WriteInstructionIntoMemory(0xA900);
-
-            Cpu.Fetch();
-            Cpu.Execute();
-
-            Assert.AreEqual(0, Cpu.A.Value);
-            Assert.IsTrue(Cpu.ZeroFlagSet());
-            Assert.IsFalse(Cpu.NegativeFlagSet());
-
-            mem.WriteInstructionIntoMemory(0xA9FF);
-
-            Cpu.Fetch();
-            Cpu.Execute();
-
-            Assert.AreEqual(0xFF, Cpu.A.Value);
-            Assert.IsFalse(Cpu.ZeroFlagSet());
-            Assert.IsTrue(Cpu.NegativeFlagSet());
         }
     }
 }

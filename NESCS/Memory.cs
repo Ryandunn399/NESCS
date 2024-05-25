@@ -41,17 +41,6 @@ namespace NESCS
         }
 
         /// <summary>
-        /// Write an full instruction into memory at next available address.
-        /// </summary>
-        /// <param name="instr">instruction to write.</param>
-        public void WriteInstructionIntoMemory(ushort instr)
-        {
-            RAM[MemoryIndex] = Utilities.ReadFirstByte(instr);
-            RAM[MemoryIndex + 1] = Utilities.ReadSecondByte(instr);
-            MemoryIndex += 2;
-        }
-
-        /// <summary>
         /// Will retrieve the current 8 bit value stored in memory.
         /// </summary>
         /// <param name="addr">the address to index.</param>
