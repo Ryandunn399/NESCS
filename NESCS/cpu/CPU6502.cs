@@ -23,10 +23,10 @@ namespace NESCS.CPU
         public Register A { get; set; }
 
         // X register
-        public Register X { get; private set; }
+        public Register X { get; set; }
 
         // Y register
-        public Register Y { get; private set; }
+        public Register Y { get; set; }
 
         // Status register, this will just be the 16 bit integer to represent the flags.
         public ushort P { get; private set; }
@@ -59,7 +59,7 @@ namespace NESCS.CPU
         /// <returns>the instruction loaded into memory.</returns>
         public int Fetch()
         {
-            Memory.ReadValueFromMemory(PC);
+            Instruction = Memory.ReadValueFromMemory(PC);
             PC += 1;
             Cycles = 0;
             return Instruction;
@@ -103,7 +103,7 @@ namespace NESCS.CPU
                     A.LoadIndexedIndirect();
                     break;
 
-                case byte when ValueTask == OpCodes.LdaIndirectIndexed:
+                case byte value when value == OpCodes.LdaIndirectIndexed:
                     A.LoadIndirectIndexed();
                     break;
 

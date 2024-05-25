@@ -43,9 +43,25 @@ namespace NESCS
             return ((absAddr & 0xFF00) != (addr & 0xFF00));
         }
 
+        /// <summary>
+        /// Will ensure that overflow wraps around and remains a byte.
+        /// </summary>
         public static byte ZeroPageWrapAround(byte v1, byte v2)
         {
             return (byte)((v1 + v2) & 0xFF);
+        }
+
+        /// <summary>
+        /// Will ensure that overflow wraps around and remains two bytes.
+        /// </summary>
+        public static ushort FourByteWrapAround(ushort v1, byte v2)
+        {
+            return (ushort)((v1 + v2) & 0xFFFF);
+        }
+
+        public static bool ZeroPagesCrossed(uint v1, uint v2)
+        {
+            return (v1 + v2 > 0xFF);
         }
     }
 }

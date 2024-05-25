@@ -17,7 +17,7 @@ namespace NESCS
         public Memory()
         {
             MemoryIndex = MemoryValues.MemoryStartAddress;
-            RAM = new byte[MemoryValues.MemorySize];
+            RAM = new byte[MemoryValues.MemorySize + 1];
         }
 
         /// <summary>

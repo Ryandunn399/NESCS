@@ -26,16 +26,26 @@ namespace NESCS
         {
             App app = new App();
 
-            Memory memory = app.NES.Memory;
-            CPU6502 cpu = app.NES.Cpu;
+            Memory mem = app.NES.Memory;
+            CPU6502 Cpu = app.NES.Cpu;
 
-            memory.WriteByteIntoMemory(0x12);
-            memory.WriteByteIntoMemory(0x12);
-            memory.WriteByteIntoMemory(0x12);
-            memory.WriteByteIntoMemory(0x12);
+            // Final destination
+            mem.WriteByteIntoMemory(0xF7, 0xCD);
 
-            uint value = cpu.ReadInBytes(1);
-            Console.WriteLine($"{value.ToString("X")}");
+            // The memory address/value instruction addr points to.
+            mem.WriteByteIntoMemory(0x12, 0xFF);
+
+            // Store address 37 in the register
+            Cpu.Y.UpdateRegisterValue(0xF8);
+
+            // Write instruction and memory address 9a to be executed 
+            mem.WriteByteIntoMemory(0xB1);
+            mem.WriteByteIntoMemory(0x12);
+
+            Cpu.Fetch();
+            Cpu.Execute();
+
+            Console.WriteLine($"{Cpu.A.Value}");
         }
     }
 }

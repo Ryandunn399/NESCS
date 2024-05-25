@@ -82,8 +82,6 @@ namespace NESCS.CPU
         {
             uint addr = Cpu.ReadInBytes(2);
 
-            // Wrap the memory index if it exceeds 0xFFFF
-            addr %= 0x10000;
             Value = Memory.ReadValueFromMemory((ushort)addr);
             UpdateStatusFlags();
             Cpu.Cycles += 4;
@@ -95,10 +93,10 @@ namespace NESCS.CPU
         /// <param name="supplValue">The X/Y regsiter value</param>
         public void LoadAbsoluteXY(byte supplValue)
         {
-            uint addr = Cpu.ReadInBytes(2);
+            ushort addr = (ushort)Cpu.ReadInBytes(2);
 
-            addr = (addr + supplValue) % 0x10000;
-            Value = Memory.ReadValueFromMemory((ushort)addr);
+            ushort addrAbs = Utilities.FourByteWrapAround(addr, supplValue);
+            Value = Memory.ReadValueFromMemory((ushort)addrAbs);
             UpdateStatusFlags();
             Cpu.Cycles += 4;
 
@@ -124,6 +122,7 @@ namespace NESCS.CPU
             // Zero page wrap around
             addr = Utilities.ZeroPageWrapAround(addr, supplAddr);
             Value = Memory.ReadValueFromMemory(addr);
+            UpdateStatusFlags();
             Cpu.Cycles += 6;
         }
 
@@ -135,14 +134,14 @@ namespace NESCS.CPU
         public void LoadIndirectIndexed()
         {
             // The second byte of the instruction contains the address FOR the value
-            ushort addr = Memory.ReadValueFromMemory((byte)Cpu.ReadInBytes(1));
-            addr = (ushort)((addr + Cpu.Y.Value) & 0xFFFF);
+            byte addr = Memory.ReadValueFromMemory((byte)Cpu.ReadInBytes(1));
 
-            Value = Memory.ReadValueFromMemory(addr);
-
+            byte addrAbs = Utilities.ZeroPageWrapAround(addr, Cpu.Y.Value);
+            Value = Memory.ReadValueFromMemory(addrAbs);
+            UpdateStatusFlags();
             Cpu.Cycles += 5;
 
-            if (Utilities.PagesCrossed(addr, Cpu.Y.Value))
+            if (Utilities.ZeroPagesCrossed(addr, Cpu.Y.Value))
             {
                 Cpu.Cycles += 1;
             }
@@ -165,6 +164,14 @@ namespace NESCS.CPU
             {
                 Cpu.SetStatusFlag(StatusFlags.ZeroFlag);
             }
+        }
+
+        /// <summary>
+        /// Function to update the register value, should only be used to provide access to test oracle.
+        /// </summary>
+        public void UpdateRegisterValue(byte v)
+        {
+            Value = v;
         }
     }
 }
