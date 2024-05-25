@@ -39,7 +39,10 @@ namespace NESCS
             cpu.Fetch();
             cpu.Execute();
 
-            Console.WriteLine($"{cpu.A.Value.ToString("X")}");
+            //Console.WriteLine($"{cpu.A.Value.ToString("X")}");
+            int v = 0xffff;
+            v = v % 0x10000;
+            Console.WriteLine($"{v.ToString("x")}");
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ namespace NESCS.CPU
         private ushort PC;
 
         // Current instruction to be ran in next execute call
-        private ushort Instruction;
+        public ushort Instruction { get; private set; }
 
         // Accumulator register
         public Register A { get; set; }
@@ -80,11 +81,19 @@ namespace NESCS.CPU
             switch (instr)
             {
                 case byte value when value == OpCodes.LdaImmediate:
-                    A.LoadInstruction(AddressMode.Immediate, Instruction, 0);
+                    A.LoadInstruction(AddressMode.Immediate, 0);
                     break;
 
                 case byte value when value == OpCodes.LdaZeroPage:
-                    A.LoadInstruction(AddressMode.ZeroPage, Instruction, 0);
+                    A.LoadInstruction(AddressMode.ZeroPage, 0);
+                    break;
+
+                case byte value when value == OpCodes.LdaZeroPageX:
+                    A.LoadInstruction(AddressMode.ZeroPageXY, X.Value);
+                    break;
+
+                case byte value when value == OpCodes.LdaAbsolute:
+                    A.LoadInstruction(AddressMode.Absolute, 0);
                     break;
             }
         }
@@ -131,6 +140,8 @@ namespace NESCS.CPU
         // Instruction constants
         public static ushort LdaImmediate => 0xA9;
         public static ushort LdaZeroPage => 0xA5;
+        public static ushort LdaZeroPageX => 0xB5;
+        public static ushort LdaAbsolute => 0xAD;
     }
 
 

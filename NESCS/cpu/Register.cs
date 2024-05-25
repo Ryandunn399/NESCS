@@ -46,8 +46,10 @@ namespace NESCS.CPU
         /// <param name="instr">the 16 bit instruction being executed.</param>
         /// <param name="suppl">supplemental register value required for some load instructions.</param>
         /// <returns>the value now stored in the register.</returns>
-        public byte LoadInstruction(AddressMode mode, ushort instr, byte supplValue)
+        public byte LoadInstruction(AddressMode mode, byte supplValue)
         {
+            ushort instr = Cpu.Instruction;
+
             switch(mode)
             {
                 case AddressMode.Immediate:
@@ -61,6 +63,8 @@ namespace NESCS.CPU
                 case AddressMode.ZeroPageXY:
                     LoadZeroPageXY(instr, supplValue);
                     break;
+
+
             }
 
             return Value;
@@ -116,6 +120,18 @@ namespace NESCS.CPU
             Value = Memory.ReadValueFromMemory(addr);
             UpdateStatusFlags();
             Cpu.Cycles += 4;
+        }
+
+        /// <summary>
+        /// Will load the instruction at the memory location
+        /// </summary>
+        private void LoadAbsolute(ushort instr)
+        {
+            int memoryIndex = Utilities.ReadSecondByte(instr);
+
+            // Wrap the memory index if it exceeds 0xFFFF
+            memoryIndex %= 0x10000;
+            Value = Memory.ReadValueFromMemory((ushort)memoryIndex);
         }
 
         /// <summary>
