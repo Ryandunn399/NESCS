@@ -135,6 +135,16 @@ namespace NESCS.CPU
         }
 
         /// <summary>
+        /// Will load the instruction
+        /// </summary>
+        /// <param name="instr"></param>
+        /// <param name="supplValue"></param>
+        private void LoadAbsoluteXY(ushort instr, byte supplValue)
+        {
+
+        }
+
+        /// <summary>
         /// Will update the status flags based on the register that was updated.
         /// </summary>
         /// <param name="register">The name of the register being updated.</param>

@@ -59,11 +59,7 @@ namespace NESCS.CPU
         /// <returns>the instruction loaded into memory.</returns>
         public int Fetch()
         {
-            Instruction = Memory.ReadValueFromMemory(PC);
-            Instruction <<= 8;
-            PC += 1;
-            Instruction = (ushort)(Instruction | Memory.ReadValueFromMemory(PC));
-            PC += 1;
+            LoadInstructionFromAddr(PC);
             Cycles = 0;
             return Instruction;
         }
@@ -94,6 +90,16 @@ namespace NESCS.CPU
 
                 case byte value when value == OpCodes.LdaAbsolute:
                     A.LoadInstruction(AddressMode.Absolute, 0);
+                    break;
+
+                case byte value when value == OpCodes.LdaAbsoluteX:
+                    LoadInstructionFromAddr((ushort)(PC - 1));
+                    A.LoadInstruction(AddressMode.AbsoluteX, X.Value);
+                    break;
+
+                case byte value when value == OpCodes.LdaAbsoluteY:
+                    LoadInstructionFromAddr((ushort)(PC - 1));
+                    A.LoadInstruction(AddressMode.AbsoluteY, Y.Value);
                     break;
             }
         }
@@ -130,6 +136,18 @@ namespace NESCS.CPU
         {
             return ((StatusFlags.NegativeFlag & P) > 0);
         }
+
+        /// <summary>
+        /// Will load the instruction from the value of the passed argument
+        /// </summary>
+        private void LoadInstructionFromAddr(ushort val)
+        {
+            Instruction = Memory.ReadValueFromMemory(val);
+            Instruction <<= 8;
+            PC += 1;
+            Instruction = (ushort)(Instruction | Memory.ReadValueFromMemory(val));
+            PC += 1;
+        }
     }
 
     /// <summary>
@@ -142,6 +160,8 @@ namespace NESCS.CPU
         public static ushort LdaZeroPage => 0xA5;
         public static ushort LdaZeroPageX => 0xB5;
         public static ushort LdaAbsolute => 0xAD;
+        public static ushort LdaAbsoluteX => 0xBD;
+        public static ushort LdaAbsoluteY => 0xB9;
     }
 
 
